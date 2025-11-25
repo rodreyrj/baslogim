@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Simple</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border: #dee2e6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.5;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Login Screen */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 1rem;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-logo i {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .login-logo h1 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .login-logo p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.8rem 1.2rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            text-decoration: none;
+            font-size: 0.9rem;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .btn:hover {
+            background-color: var(--secondary);
+        }
+
+        .btn-success {
+            background-color: var(--success);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+        }
+
+        .connection-test {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+        }
+
+        .status-dot.connected {
+            background-color: #2ecc71;
+        }
+
+        /* App Styles */
+        .app-container {
+            display: none;
+        }
+
+        .app-container.active {
+            display: block;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 1.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+
+        .user-info:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        .user-info span {
+            font-size: 0.8rem;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Main Layout */
+        .main-app {
+            width: 100%;
+            min-height: calc(100vh - 140px);
+        }
+
+        /* Desktop Navigation */
+        .desktop-nav {
+            display: none;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 1rem 0;
+            padding-bottom: 80px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        /* Dashboard Cards */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .card i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .card p {
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        /* Product List - Mobile First */
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            font-size: 1rem;
+        }
+
+        .product-details {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            font-size: 0.8rem;
+            color: var(--gray);
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .edit-btn {
+            background-color: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .delete-btn {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: var(--danger);
+        }
+
+        /* Table for larger screens */
+        .table-container {
+            display: none;
+        }
+
+        /* Mobile Navigation Footer */
+        .mobile-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 0.6rem 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 8px;
+            transition: all 0.2s;
+            flex: 1;
+            max-width: 80px;
+        }
+
+        .nav-btn.active, .nav-btn:hover {
+            color: var(--primary);
+        }
+
+        .nav-btn i {
+            font-size: 1.1rem;
+        }
+
+        .nav-btn span {
+            font-size: 0.65rem;
+            font-weight: 500;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1100;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            color: var(--gray);
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 1.2rem;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .alert-success {
+            background-color: rgba(76, 201, 240, 0.1);
+            color: #0c8599;
+            border: 1px solid rgba(76, 201, 240, 0.3);
+        }
+
+        .alert-danger {
+            background-color: rgba(247, 37, 133, 0.1);
+            color: #c2255c;
+            border: 1px solid rgba(247, 37, 133, 0.3);
+        }
+
+        /* Footer */
+        footer {
+            display: none;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .contact-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .contact-link:hover {
+            color: var(--secondary);
+        }
+
+        /* Nuevos estilos para la lista de productos en dashboard */
+        .products-summary {
+            margin-top: 1.5rem;
+            background: white;
+            border-radius: 12px;
+            padding: 1.2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .products-summary h3 {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: var(--dark);
+        }
+
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.7rem 0.8rem;
+            background: var(--light);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .product-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .product-quantity {
+            background-color: var(--primary);
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .refresh-btn {
+            margin-top: 1rem;
+            padding: 0.6rem 1rem;
+            background-color: var(--success);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            width: 100%;
+        }
+
+        /* Filtros */
+        .filters {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .filter-input {
+            flex: 2;
+            min-width: 200px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Logout Dropdown */
+        .logout-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 0.5rem;
+            min-width: 150px;
+            z-index: 1000;
+            margin-top: 0.5rem;
+        }
+
+        .logout-dropdown.show {
+            display: block;
+        }
+
+        /* Loading States */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .btn.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 720px;
+            }
+            
+            .desktop-nav {
+                display: block;
+                width: 250px;
+                background: white;
+                padding: 2rem 1rem;
+                box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            }
+            
+            .mobile-nav {
+                display: none;
+            }
+            
+            .main-app {
+                display: flex;
+                min-height: calc(100vh - 140px);
+            }
+            
+            .main-content {
+                flex: 1;
+                padding: 2rem 0;
+                padding-bottom: 0;
+            }
+            
+            footer {
+                display: block;
+                background-color: white;
+                padding: 1.5rem 0;
+                text-align: center;
+                color: var(--gray);
+                border-top: 1px solid var(--border);
+            }
+            
+            .dashboard {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 15px;
+            }
+            
+            .product-list {
+                display: none;
+            }
+            
+            .table-container {
+                display: block;
+                overflow-x: auto;
+            }
+
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                background: white;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+                border-radius: 12px;
+                overflow: hidden;
+            }
+
+            th, td {
+                padding: 1rem;
+                text-align: left;
+                border-bottom: 1px solid var(--border);
+            }
+
+            th {
+                background-color: var(--primary);
+                color: white;
+                font-weight: 600;
+            }
+
+            tr:last-child td {
+                border-bottom: none;
+            }
+
+            .card {
+                padding: 1.2rem;
+            }
+
+            .card i {
+                font-size: 1.8rem;
+            }
+
+            .card h3 {
+                font-size: 1.5rem;
+            }
+
+            .card p {
+                font-size: 0.85rem;
+            }
+
+            .logo h1 {
+                font-size: 1.3rem;
+            }
+
+            .user-info span {
+                max-width: 200px;
+                font-size: 0.9rem;
+            }
+
+            .filter-group {
+                flex-wrap: nowrap;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .container {
+                max-width: 960px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 1140px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginScreen">
+        <div class="login-card">
+            <div class="login-logo">
+                <i class="fas fa-boxes"></i>
+                <h1>Inventario Pro</h1>
+                <p>Sistema de gestión de inventarios</p>
+            </div>
+
+            <form id="loginForm" class="login-form active">
+                <div class="form-group">
+                    <label class="form-label" for="loginEmail">Correo Electrónico</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="tu@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="connection-test">
+                <div class="connection-status">
+                    <div class="status-dot" id="statusDot"></div>
+                    <span id="statusText">Verificando conexión...</span>
+                </div>
+                <button type="button" class="btn btn-warning" id="testConnectionBtn">
+                    <i class="fas fa-database"></i> Verificar Conexión BD
+                </button>
+                <div id="connectionResult" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div class="app-container" id="appContainer">
+        <header>
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <i class="fas fa-boxes"></i>
+                        <h1>Inventario Pro</h1>
+                    </div>
+                    <div class="user-section">
+                        <div class="user-info" id="userInfo">
+                            <i class="fas fa-user"></i>
+                            <span id="userEmail">usuario@email.com</span>
+                        </div>
+                        <div class="logout-dropdown" id="logoutDropdown">
+                            <button class="btn btn-danger btn-sm" id="logoutBtn" style="width: 100%;">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-app">
+            <!-- Desktop Navigation -->
+            <nav class="desktop-nav">
+                <ul class="nav-menu">
+                    <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</a></li>
+                    <li><a href="#" data-section="products"><i class="fas fa-box"></i> Productos</a></li>
+                    <li><a href="#" data-section="categories"><i class="fas fa-tags"></i> Categorías</a></li>
+                    <li><a href="#" data-section="about"><i class="fas fa-info-circle"></i> Acerca de</a></li>
+                </ul>
+            </nav>
+
+            <div class="main-content">
+                <div class="container">
+                    <!-- Dashboard Section -->
+                    <section id="dashboard" class="section active">
+                        <h2 class="section-title">Dashboard</h2>
+                        
+                        <div class="dashboard">
+                            <div class="card">
+                                <i class="fas fa-box"></i>
+                                <h3 id="totalProducts">0</h3>
+                                <p>Productos</p>
+                            </div>
+                            <div class="card">
+                                <i class="fas fa-tags"></i>
+                                <h3 id="totalCategories">0</h3>
+                                <p>Categorías</p>
+                            </div>
+                            <div class="card" id="totalProductosCard">
+                                <i class="fas fa-cubes"></i>
+                                <h3 id="totalProductos">0</h3>
+                                <p>Total Productos</p>
+                            </div>
+                            <div class="card">
+                                <i class="fas fa-dollar-sign"></i>
+                                <h3 id="totalValue">$0</h3>
+                                <p>Valor Total</p>
+                            </div>
+                        </div>
+
+                        <!-- Nueva sección para mostrar la lista de productos -->
+                        <div class="products-summary" id="productsSummary" style="display: none;">
+                            <h3>Lista de Productos y Cantidades</h3>
+                            <div id="productsListDashboard">
+                                <!-- Los productos se cargarán aquí -->
+                            </div>
+                            <button class="refresh-btn" id="refreshProductsBtn">
+                                <i class="fas fa-sync-alt"></i> Actualizar Lista
+                            </button>
+                        </div>
+                    </section>
+
+                    <!-- Products Section -->
+                    <section id="products" class="section">
+                        <div class="section-title">
+                            <h2>Productos</h2>
+                            <button class="btn" id="addProductBtn">
+                                <i class="fas fa-plus"></i> Nuevo
+                            </button>
+                        </div>
+
+                        <!-- Filtros para productos -->
+                        <div class="filters">
+                            <div class="filter-group">
+                                <select id="productCategoryFilter" class="form-control filter-select">
+                                    <option value="">Todas las categorías</option>
+                                </select>
+                                <input type="text" id="productSearch" class="form-control filter-input" placeholder="Buscar producto...">
+                                <div class="filter-buttons">
+                                    <button class="btn btn-sm" id="applyProductFilters">
+                                        <i class="fas fa-filter"></i> Filtrar
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" id="clearProductFilters">
+                                        <i class="fas fa-times"></i> Limpiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="productAlert" class="alert"></div>
+                        
+                        <div class="product-list" id="productsList">
+                            <!-- Los productos se cargarán aquí -->
+                        </div>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Categoría</th>
+                                        <th>Precio</th>
+                                        <th>Productos</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="productsTable">
+                                    <!-- Los productos se cargarán aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Categories Section -->
+                    <section id="categories" class="section">
+                        <div class="section-title">
+                            <h2>Categorías</h2>
+                            <button class="btn" id="addCategoryBtn">
+                                <i class="fas fa-plus"></i> Nueva
+                            </button>
+                        </div>
+
+                        <!-- Filtros para categorías -->
+                        <div class="filters">
+                            <div class="filter-group">
+                                <input type="text" id="categorySearch" class="form-control filter-input" placeholder="Buscar categoría...">
+                                <div class="filter-buttons">
+                                    <button class="btn btn-sm" id="applyCategoryFilters">
+                                        <i class="fas fa-filter"></i> Filtrar
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" id="clearCategoryFilters">
+                                        <i class="fas fa-times"></i> Limpiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="categoryAlert" class="alert"></div>
+                        
+                        <div class="product-list" id="categoriesList">
+                            <!-- Las categorías se cargarán aquí -->
+                        </div>
+                        
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Productos</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="categoriesTable">
+                                    <!-- Las categorías se cargarán aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- About Section -->
+                    <section id="about" class="section">
+                        <div class="section-title">
+                            <h2>Acerca de</h2>
+                        </div>
+                        
+                        <div class="card">
+                            <h3 style="margin-bottom: 1rem;">Sistema de Gestión de Inventario</h3>
+                            <p style="margin-bottom: 1rem;">Versión 1.0</p>
+                            <p>Sistema desarrollado para la gestión eficiente de inventarios con integración Supabase.</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Footer -->
+        <nav class="mobile-nav">
+            <button class="nav-btn active" data-section="dashboard">
+                <i class="fas fa-chart-pie"></i>
+                <span>Dashboard</span>
+            </button>
+            <button class="nav-btn" data-section="products">
+                <i class="fas fa-box"></i>
+                <span>Productos</span>
+            </button>
+            <button class="nav-btn" data-section="categories">
+                <i class="fas fa-tags"></i>
+                <span>Categorías</span>
+            </button>
+            <button class="nav-btn" data-section="about">
+                <i class="fas fa-info-circle"></i>
+                <span>Acerca de</span>
+            </button>
+        </nav>
+
+        <footer>
+            <div class="container">
+                <p>Sistema de Inventario &copy; 2023</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="productModalTitle">Agregar Producto</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <input type="hidden" id="productId">
+                    <div class="form-group">
+                        <label class="form-label" for="productName">Nombre</label>
+                        <input type="text" id="productName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="productCategory">Categoría</label>
+                        <select id="productCategory" class="form-control" required>
+                            <!-- Las categorías se cargarán aquí -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="productPrice">Precio</label>
+                        <input type="number" id="productPrice" class="form-control" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="productProducto">Productos</label>
+                        <input type="number" id="productProducto" class="form-control" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-block" id="saveProductBtn">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="categoryModalTitle">Agregar Categoría</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    <input type="hidden" id="categoryId">
+                    <div class="form-group">
+                        <label class="form-label" for="categoryName">Nombre</label>
+                        <input type="text" id="categoryName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-block" id="saveCategoryBtn">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://xzioiohlvapodmbsmbil.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh6aW9pb2hsdmFwb2RtYnNtYmlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQwMDEyMjAsImV4cCI6MjA3OTU3NzIyMH0.DUIpPFrz2a-9rvU1lgvve7e4rebpYnHvsbdr49z_nwg';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let currentUser = null;
+        let categoriesCache = null;
+        let productsCache = null;
+        let currentProductFilters = {
+            category: '',
+            search: ''
+        };
+        let currentCategoryFilters = {
+            search: ''
+        };
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthState();
+            setupEventListeners();
+            checkConnection();
+        });
+
+        // Verificar estado de autenticación
+        async function checkAuthState() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                currentUser = user;
+                showApp();
+                loadData();
+            } else {
+                showLogin();
+            }
+        }
+
+        // Mostrar aplicación
+        function showApp() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('appContainer').classList.add('active');
+            document.getElementById('userEmail').textContent = currentUser.email;
+        }
+
+        // Mostrar login
+        function showLogin() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('appContainer').classList.remove('active');
+        }
+
+        // Verificar conexión con Supabase
+        async function checkConnection() {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            try {
+                const { data, error } = await supabase.from('categories').select('count').limit(1);
+                
+                if (error) {
+                    statusDot.classList.remove('connected');
+                    statusText.textContent = 'Error de conexión';
+                } else {
+                    statusDot.classList.add('connected');
+                    statusText.textContent = 'Conectado a la base de datos';
+                }
+            } catch (error) {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Error de conexión';
+            }
+        }
+
+        // Verificar conexión manualmente
+        async function checkConnectionManual() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.innerHTML = '<p style="color: var(--gray);">Verificando conexión...</p>';
+            
+            try {
+                const { data, error } = await supabase.from('categories').select('count').limit(1);
+                
+                if (error) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>✗ Error de conexión:</strong> ${error.message}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>✓ Conexión exitosa:</strong> Base de datos conectada correctamente
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>✗ Error de conexión:</strong> ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            // Formulario de login
+            document.getElementById('loginForm').addEventListener('submit', login);
+
+            // Botón de verificar conexión
+            document.getElementById('testConnectionBtn').addEventListener('click', checkConnectionManual);
+
+            // Cerrar sesión con dropdown
+            document.getElementById('userInfo').addEventListener('click', function() {
+                const dropdown = document.getElementById('logoutDropdown');
+                dropdown.classList.toggle('show');
+            });
+
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+
+            // Cerrar dropdown al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.user-section')) {
+                    document.getElementById('logoutDropdown').classList.remove('show');
+                }
+            });
+
+            // Navegación desktop
+            document.querySelectorAll('.desktop-nav a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                    updateDesktopNav(this);
+                });
+            });
+
+            // Navegación móvil
+            document.querySelectorAll('.mobile-nav .nav-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const section = this.getAttribute('data-section');
+                    showSection(section);
+                    updateMobileNav(this);
+                });
+            });
+
+            // Botones de productos
+            document.getElementById('addProductBtn').addEventListener('click', () => openProductModal());
+            document.getElementById('productForm').addEventListener('submit', saveProduct);
+
+            // Botones de categorías
+            document.getElementById('addCategoryBtn').addEventListener('click', () => openCategoryModal());
+            document.getElementById('categoryForm').addEventListener('submit', saveCategory);
+
+            // Cerrar modales
+            document.querySelectorAll('.modal-close').forEach(closeBtn => {
+                closeBtn.addEventListener('click', closeModals);
+            });
+
+            // Cerrar modales al hacer clic fuera
+            window.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    closeModals();
+                }
+            });
+
+            // Nuevos event listeners para la funcionalidad del dashboard
+            document.getElementById('totalProductosCard').addEventListener('click', function() {
+                toggleProductsSummary();
+            });
+
+            document.getElementById('refreshProductsBtn').addEventListener('click', function() {
+                loadProductsSummary();
+            });
+
+            // Filtros de productos
+            document.getElementById('applyProductFilters').addEventListener('click', applyProductFilters);
+            document.getElementById('clearProductFilters').addEventListener('click', clearProductFilters);
+            document.getElementById('productSearch').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    applyProductFilters();
+                }
+            });
+
+            // Filtros de categorías
+            document.getElementById('applyCategoryFilters').addEventListener('click', applyCategoryFilters);
+            document.getElementById('clearCategoryFilters').addEventListener('click', clearCategoryFilters);
+            document.getElementById('categorySearch').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    applyCategoryFilters();
+                }
+            });
+        }
+
+        // Aplicar filtros de productos
+        function applyProductFilters() {
+            currentProductFilters.category = document.getElementById('productCategoryFilter').value;
+            currentProductFilters.search = document.getElementById('productSearch').value.toLowerCase();
+            renderProducts(productsCache);
+        }
+
+        // Limpiar filtros de productos
+        function clearProductFilters() {
+            document.getElementById('productCategoryFilter').value = '';
+            document.getElementById('productSearch').value = '';
+            currentProductFilters.category = '';
+            currentProductFilters.search = '';
+            renderProducts(productsCache);
+        }
+
+        // Aplicar filtros de categorías
+        function applyCategoryFilters() {
+            currentCategoryFilters.search = document.getElementById('categorySearch').value.toLowerCase();
+            renderCategories(categoriesCache);
+        }
+
+        // Limpiar filtros de categorías
+        function clearCategoryFilters() {
+            document.getElementById('categorySearch').value = '';
+            currentCategoryFilters.search = '';
+            renderCategories(categoriesCache);
+        }
+
+        // Función para mostrar/ocultar la lista de productos en el dashboard
+        function toggleProductsSummary() {
+            const summary = document.getElementById('productsSummary');
+            if (summary.style.display === 'none') {
+                summary.style.display = 'block';
+                loadProductsSummary();
+            } else {
+                summary.style.display = 'none';
+            }
+        }
+
+        // Función para cargar la lista de productos en el dashboard
+        async function loadProductsSummary() {
+            const { data: products, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('name');
+
+            if (!error) {
+                renderProductsSummary(products);
+            }
+        }
+
+        // Función para renderizar la lista de productos en el dashboard
+        function renderProductsSummary(products) {
+            const container = document.getElementById('productsListDashboard');
+            container.innerHTML = '';
+
+            if (products.length === 0) {
+                container.innerHTML = '<div class="product-item">No hay productos registrados</div>';
+                return;
+            }
+
+            products.forEach(product => {
+                const productItem = document.createElement('div');
+                productItem.className = 'product-item';
+                productItem.innerHTML = `
+                    <span class="product-name">${product.name}</span>
+                    <span class="product-quantity">${product.producto} unidades</span>
+                `;
+                container.appendChild(productItem);
+            });
+        }
+
+        // Iniciar sesión
+        async function login(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            // Mostrar loading
+            loginBtn.classList.add('loading');
+            loginBtn.disabled = true;
+
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            // Quitar loading
+            loginBtn.classList.remove('loading');
+            loginBtn.disabled = false;
+
+            if (error) {
+                alert('Error: ' + error.message);
+            } else {
+                currentUser = data.user;
+                showApp();
+                // Limpiar caché al cambiar de usuario
+                categoriesCache = null;
+                productsCache = null;
+            }
+        }
+
+        // Cerrar sesión
+        async function logout() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            categoriesCache = null;
+            productsCache = null;
+            showLogin();
+        }
+
+        // Actualizar navegación desktop
+        function updateDesktopNav(activeLink) {
+            document.querySelectorAll('.desktop-nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            activeLink.classList.add('active');
+        }
+
+        // Actualizar navegación móvil
+        function updateMobileNav(activeBtn) {
+            document.querySelectorAll('.mobile-nav .nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            activeBtn.classList.add('active');
+        }
+
+        // Mostrar sección específica
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        // Cargar datos desde Supabase - SOLO DATOS DEL USUARIO ACTUAL
+        async function loadData() {
+            await Promise.all([loadCategories(), loadProducts()]);
+            updateDashboard();
+            
+            if (document.getElementById('productsSummary').style.display === 'block') {
+                loadProductsSummary();
+            }
+        }
+
+        // Cargar categorías - SOLO LAS DEL USUARIO ACTUAL
+        async function loadCategories() {
+            const { data: categories, error } = await supabase
+                .from('categories')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('name');
+
+            if (!error) {
+                categoriesCache = categories;
+                renderCategories(categories);
+                updateCategoryFilters();
+            } else {
+                console.error('Error cargando categorías:', error);
+                categoriesCache = [];
+                renderCategories([]);
+            }
+        }
+
+        // Actualizar filtros de categorías
+        function updateCategoryFilters() {
+            const categoryFilter = document.getElementById('productCategoryFilter');
+            categoryFilter.innerHTML = '<option value="">Todas las categorías</option>';
+            
+            if (categoriesCache) {
+                categoriesCache.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    categoryFilter.appendChild(option);
+                });
+            }
+        }
+
+        // Cargar productos - SOLO LOS DEL USUARIO ACTUAL
+        async function loadProducts() {
+            const { data: products, error } = await supabase
+                .from('products')
+                .select(`
+                    *,
+                    categories (name)
+                `)
+                .eq('user_id', currentUser.id)
+                .order('name');
+
+            if (!error) {
+                productsCache = products;
+                renderProducts(products);
+            } else {
+                console.error('Error cargando productos:', error);
+                productsCache = [];
+                renderProducts([]);
+            }
+        }
+
+        // Renderizar productos con filtros
+        function renderProducts(products) {
+            const list = document.getElementById('productsList');
+            const table = document.getElementById('productsTable');
+            
+            list.innerHTML = '';
+            table.innerHTML = '';
+            
+            // Aplicar filtros
+            let filteredProducts = products;
+            
+            if (currentProductFilters.category) {
+                filteredProducts = filteredProducts.filter(product => 
+                    product.category_id == currentProductFilters.category
+                );
+            }
+            
+            if (currentProductFilters.search) {
+                filteredProducts = filteredProducts.filter(product =>
+                    product.name.toLowerCase().includes(currentProductFilters.search)
+                );
+            }
+            
+            if (filteredProducts.length === 0) {
+                list.innerHTML = '<div class="card" style="text-align: center; padding: 2rem;">No hay productos que coincidan con los filtros</div>';
+                table.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay productos que coincidan con los filtros</td></tr>';
+                return;
+            }
+
+            // Versión móvil
+            filteredProducts.forEach(product => {
+                const categoryName = product.categories ? product.categories.name : 'Sin categoría';
+                
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-details">
+                            <span>${categoryName}</span>
+                            <span>Productos: ${product.producto}</span>
+                            <span>$${product.price.toFixed(2)}</span>
+                        </div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn edit-btn" data-id="${product.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${product.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(card);
+                
+                // Versión desktop
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${product.id}</td>
+                    <td>${product.name}</td>
+                    <td>${categoryName}</td>
+                    <td>$${product.price.toFixed(2)}</td>
+                    <td>${product.producto}</td>
+                    <td>
+                        <button class="btn btn-sm edit-btn" data-id="${product.id}">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${product.id}">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+
+            // Agregar eventos
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    openProductModal(productId);
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const productId = parseInt(this.getAttribute('data-id'));
+                    deleteProduct(productId);
+                });
+            });
+        }
+
+        // Renderizar categorías con filtros
+        function renderCategories(categories) {
+            const list = document.getElementById('categoriesList');
+            const table = document.getElementById('categoriesTable');
+            
+            list.innerHTML = '';
+            table.innerHTML = '';
+            
+            // Aplicar filtros
+            let filteredCategories = categories;
+            
+            if (currentCategoryFilters.search) {
+                filteredCategories = filteredCategories.filter(category =>
+                    category.name.toLowerCase().includes(currentCategoryFilters.search)
+                );
+            }
+            
+            if (filteredCategories.length === 0) {
+                list.innerHTML = '<div class="card" style="text-align: center; padding: 2rem;">No hay categorías que coincidan con los filtros</div>';
+                table.innerHTML = '<tr><td colspan="4" style="text-align: center;">No hay categorías que coincidan con los filtros</td></tr>';
+                return;
+            }
+
+            // Obtener conteo de productos por categoría (solo productos del usuario)
+            const productCounts = {};
+            if (productsCache) {
+                productsCache.forEach(product => {
+                    if (product.category_id) {
+                        productCounts[product.category_id] = (productCounts[product.category_id] || 0) + 1;
+                    }
+                });
+            }
+
+            // Versión móvil
+            filteredCategories.forEach(category => {
+                const productCount = productCounts[category.id] || 0;
+                
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <div class="product-info">
+                        <div class="product-name">${category.name}</div>
+                        <div class="product-details">
+                            <span>${productCount} productos</span>
+                        </div>
+                    </div>
+                    <div class="product-actions">
+                        <button class="action-btn edit-btn" data-id="${category.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete-btn" data-id="${category.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                list.appendChild(card);
+                
+                // Versión desktop
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${category.id}</td>
+                    <td>${category.name}</td>
+                    <td>${productCount}</td>
+                    <td>
+                        <button class="btn btn-sm edit-btn" data-id="${category.id}">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${category.id}">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </td>
+                `;
+                table.appendChild(row);
+            });
+
+            // Agregar eventos
+            document.querySelectorAll('#categoriesList .edit-btn, #categoriesTable .edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const categoryId = parseInt(this.getAttribute('data-id'));
+                    openCategoryModal(categoryId);
+                });
+            });
+
+            document.querySelectorAll('#categoriesList .delete-btn, #categoriesTable .delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const categoryId = parseInt(this.getAttribute('data-id'));
+                    deleteCategory(categoryId);
+                });
+            });
+        }
+
+        // Actualizar dashboard - SOLO CONTAR DATOS DEL USUARIO
+        async function updateDashboard() {
+            const { data: products, error } = await supabase
+                .from('products')
+                .select('*')
+                .eq('user_id', currentUser.id);
+
+            const { data: categories, error: catError } = await supabase
+                .from('categories')
+                .select('*')
+                .eq('user_id', currentUser.id);
+
+            if (!error && !catError) {
+                document.getElementById('totalProducts').textContent = products.length;
+                document.getElementById('totalCategories').textContent = categories.length;
+                
+                const totalProductos = products.reduce((sum, product) => sum + product.producto, 0);
+                document.getElementById('totalProductos').textContent = totalProductos;
+                
+                const totalValue = products.reduce((sum, product) => sum + (product.price * product.producto), 0);
+                document.getElementById('totalValue').textContent = `$${totalValue.toFixed(2)}`;
+            }
+        }
+
+        // Modal de producto - SOLO MOSTRAR CATEGORÍAS DEL USUARIO
+        async function openProductModal(productId = null) {
+            const modal = document.getElementById('productModal');
+            const title = document.getElementById('productModalTitle');
+            const form = document.getElementById('productForm');
+            const categorySelect = document.getElementById('productCategory');
+            
+            form.reset();
+            document.getElementById('productId').value = '';
+            
+            // Cargar categorías SOLO del usuario actual
+            if (!categoriesCache) {
+                await loadCategories();
+            }
+
+            categorySelect.innerHTML = '<option value="">Seleccione categoría</option>';
+            if (categoriesCache) {
+                categoriesCache.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category.id;
+                    option.textContent = category.name;
+                    categorySelect.appendChild(option);
+                });
+            }
+            
+            // Si es edición, VERIFICAR QUE EL PRODUCTO PERTENEZCA AL USUARIO
+            if (productId) {
+                title.textContent = 'Editar Producto';
+                document.getElementById('productId').value = productId;
+                
+                const { data: product, error } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('id', productId)
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (!error) {
+                    document.getElementById('productName').value = product.name;
+                    document.getElementById('productCategory').value = product.category_id;
+                    document.getElementById('productPrice').value = product.price;
+                    document.getElementById('productProducto').value = product.producto;
+                } else {
+                    showAlert('No tienes permisos para editar este producto', 'danger', 'productAlert');
+                    closeModals();
+                    return;
+                }
+            } else {
+                title.textContent = 'Agregar Producto';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        // Guardar producto - ASIGNAR AL USUARIO ACTUAL
+        async function saveProduct(e) {
+            e.preventDefault();
+            
+            const saveBtn = document.getElementById('saveProductBtn');
+            const productId = document.getElementById('productId').value;
+            const productData = {
+                name: document.getElementById('productName').value,
+                category_id: document.getElementById('productCategory').value ? parseInt(document.getElementById('productCategory').value) : null,
+                price: parseFloat(document.getElementById('productPrice').value),
+                producto: parseInt(document.getElementById('productProducto').value),
+                user_id: currentUser.id
+            };
+            
+            saveBtn.classList.add('loading');
+            saveBtn.disabled = true;
+            
+            let error;
+            if (productId) {
+                // Editar - VERIFICAR QUE EL PRODUCTO PERTENEZCA AL USUARIO
+                const { error: updateError } = await supabase
+                    .from('products')
+                    .update(productData)
+                    .eq('id', productId)
+                    .eq('user_id', currentUser.id);
+                error = updateError;
+            } else {
+                // Agregar - ASIGNAR AL USUARIO ACTUAL
+                const { error: insertError } = await supabase
+                    .from('products')
+                    .insert([productData]);
+                error = insertError;
+            }
+            
+            saveBtn.classList.remove('loading');
+            saveBtn.disabled = false;
+            
+            if (error) {
+                showAlert('Error al guardar producto: ' + error.message, 'danger', 'productAlert');
+            } else {
+                showAlert(productId ? 'Producto actualizado' : 'Producto agregado', 'success', 'productAlert');
+                productsCache = null;
+                categoriesCache = null;
+                loadData();
+                closeModals();
+            }
+        }
+
+        // Eliminar producto - VERIFICAR QUE PERTENEZCA AL USUARIO
+        async function deleteProduct(productId) {
+            if (confirm('¿Eliminar este producto?')) {
+                const { error } = await supabase
+                    .from('products')
+                    .delete()
+                    .eq('id', productId)
+                    .eq('user_id', currentUser.id);
+
+                if (error) {
+                    showAlert('Error al eliminar producto: ' + error.message, 'danger', 'productAlert');
+                } else {
+                    showAlert('Producto eliminado', 'success', 'productAlert');
+                    productsCache = null;
+                    categoriesCache = null;
+                    loadData();
+                }
+            }
+        }
+
+        // Modal de categoría - VERIFICAR PROPIEDAD
+        async function openCategoryModal(categoryId = null) {
+            const modal = document.getElementById('categoryModal');
+            const title = document.getElementById('categoryModalTitle');
+            const form = document.getElementById('categoryForm');
+            
+            form.reset();
+            document.getElementById('categoryId').value = '';
+            
+            // Si es edición, VERIFICAR QUE LA CATEGORÍA PERTENEZCA AL USUARIO
+            if (categoryId) {
+                title.textContent = 'Editar Categoría';
+                document.getElementById('categoryId').value = categoryId;
+                
+                const { data: category, error } = await supabase
+                    .from('categories')
+                    .select('*')
+                    .eq('id', categoryId)
+                    .eq('user_id', currentUser.id)
+                    .single();
+
+                if (!error) {
+                    document.getElementById('categoryName').value = category.name;
+                } else {
+                    showAlert('No tienes permisos para editar esta categoría', 'danger', 'categoryAlert');
+                    closeModals();
+                    return;
+                }
+            } else {
+                title.textContent = 'Agregar Categoría';
+            }
+            
+            modal.classList.add('active');
+        }
+
+        // Guardar categoría - ASIGNAR AL USUARIO ACTUAL
+        async function saveCategory(e) {
+            e.preventDefault();
+            
+            const saveBtn = document.getElementById('saveCategoryBtn');
+            const categoryId = document.getElementById('categoryId').value;
+            const categoryData = {
+                name: document.getElementById('categoryName').value,
+                user_id: currentUser.id
+            };
+            
+            saveBtn.classList.add('loading');
+            saveBtn.disabled = true;
+            
+            let error;
+            if (categoryId) {
+                // Editar - VERIFICAR QUE LA CATEGORÍA PERTENEZCA AL USUARIO
+                const { error: updateError } = await supabase
+                    .from('categories')
+                    .update(categoryData)
+                    .eq('id', categoryId)
+                    .eq('user_id', currentUser.id);
+                error = updateError;
+            } else {
+                // Agregar - ASIGNAR AL USUARIO ACTUAL
+                const { error: insertError } = await supabase
+                    .from('categories')
+                    .insert([categoryData]);
+                error = insertError;
+            }
+            
+            saveBtn.classList.remove('loading');
+            saveBtn.disabled = false;
+            
+            if (error) {
+                showAlert('Error al guardar categoría: ' + error.message, 'danger', 'categoryAlert');
+            } else {
+                showAlert(categoryId ? 'Categoría actualizada' : 'Categoría agregada', 'success', 'categoryAlert');
+                categoriesCache = null;
+                productsCache = null;
+                loadData();
+                closeModals();
+            }
+        }
+
+        // Eliminar categoría - VERIFICAR QUE PERTENEZCA AL USUARIO
+        async function deleteCategory(categoryId) {
+            if (confirm('¿Eliminar esta categoría?')) {
+                const { error } = await supabase
+                    .from('categories')
+                    .delete()
+                    .eq('id', categoryId)
+                    .eq('user_id', currentUser.id);
+
+                if (error) {
+                    showAlert('Error al eliminar categoría: ' + error.message, 'danger', 'categoryAlert');
+                } else {
+                    showAlert('Categoría eliminada', 'success', 'categoryAlert');
+                    categoriesCache = null;
+                    productsCache = null;
+                    loadData();
+                }
+            }
+        }
+
+        // Mostrar alerta
+        function showAlert(message, type, containerId) {
+            const alert = document.getElementById(containerId);
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+
+        // Cerrar modales
+        function closeModals() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.classList.remove('active');
+            });
+        }
+    </script>
+</body>
+</html>
